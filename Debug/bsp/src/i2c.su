@@ -1,0 +1,4 @@
+i2c.c:10:6:BSP_I2C1_Init	8	static
+i2c.c:54:9:BSP_I2C1_Read	32	static
+i2c.c:141:9:BSP_OLED_SEND_CMD	24	static
+i2c.c:198:9:BSP_OLED_SEND_CHAR	24	static

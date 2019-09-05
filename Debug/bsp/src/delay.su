@@ -1,0 +1,2 @@
+delay.c:4:6:BSP_DELAY_ms	24	static
+delay.c:10:6:BSP_DELAY_us	24	static
