@@ -127,10 +127,9 @@ void USART1_IRQHandler()
 	if ((USART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE)
 	{
 		// RXNE flags automatically clears when reading RDR.
-
 		// Store incoming byte
 		console_rx_byte = USART1->RDR;
-	console_rx_irq = 1;
+		console_rx_irq = 1;
 	}
 }
 
@@ -161,6 +160,7 @@ void TIM16_IRQHandler()
 }
 
 extern uint16_t a;
+extern uint8_t adc_irq;
 
 void ADC1_COMP_IRQHandler (void){
 
@@ -179,6 +179,7 @@ void ADC1_COMP_IRQHandler (void){
 				TIM16->CCR1 = 200;
 				TIM16->ARR = a;
 			}
+			adc_irq = 1;
 		}
 
 }

@@ -6,6 +6,8 @@
  */
 #include "bt.h"
 
+extern uint8_t rx_dma_buffer[8];
+
 void BSP_BT_Init() {
 
 	// Enable GPIOA clock
@@ -13,8 +15,7 @@ void BSP_BT_Init() {
 
 	// Configure PA9 and PA10 as Alternate function
 	GPIOA->MODER &= ~(GPIO_MODER_MODER9_Msk | GPIO_MODER_MODER10_Msk);
-	GPIOA->MODER |= (0x02 << GPIO_MODER_MODER9_Pos)
-			| (0x02 << GPIO_MODER_MODER10_Pos);
+	GPIOA->MODER |= (0x02 << GPIO_MODER_MODER9_Pos) | (0x02 << GPIO_MODER_MODER10_Pos);
 
 	// Set PA9 and PA10 to AF1 (USART1)
 	GPIOA->AFR[1] &= ~(0x00000FF0);
@@ -47,10 +48,54 @@ void BSP_BT_Init() {
 	USART1->CR1 |= USART_CR1_TE | USART_CR1_RE;
 
 	// Enable USART1
-	USART1->CR1 |= USART_CR1_UE;
+	//USART1->CR1 |= USART_CR1_UE;
 
 	// Enable interrupt on RXNE event
-	USART1->CR1 |= USART_CR1_RXNEIE;
+	//USART1->CR1 |= USART_CR1_RXNEIE;
+
+	// Setup RX on DMA Channel 5
+
+	// Start DMA clock
+	RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+
+	// Reset DMA1 Channel 5 configuration
+	DMA1_Channel3->CCR = 0x00000000;
+
+	// Set direction Peripheral -> Memory
+	DMA1_Channel3->CCR &= ~DMA_CCR_DIR;
+
+	// Peripheral is USART1 RDR
+	DMA1_Channel3->CPAR = (uint32_t)&USART1->RDR;
+
+	// Peripheral data size is 8-bit (byte)
+	DMA1_Channel3->CCR |= (0x00 <<DMA_CCR_PSIZE_Pos);
+
+	// Disable auto-increment Peripheral address
+	DMA1_Channel3->CCR &= ~DMA_CCR_PINC;
+
+	// Memory is rx_dma_buffer
+	DMA1_Channel3->CMAR = (uint32_t)rx_dma_buffer;
+
+	// Memory data size is 8-bit (byte)
+	DMA1_Channel3->CCR |= (0x00 <<DMA_CCR_MSIZE_Pos);
+
+	// Enable auto-increment Memory address
+	DMA1_Channel3->CCR |= DMA_CCR_MINC;
+
+	// Set Memory Buffer size
+	DMA1_Channel3->CNDTR = 8;
+
+	// DMA mode is circular
+	DMA1_Channel3->CCR |= DMA_CCR_CIRC;
+
+	// Enable DMA1 Channel 5
+	DMA1_Channel3->CCR |= DMA_CCR_EN;
+
+	// Enable USART2 DMA Request on RX
+	USART1->CR3 |= USART_CR3_DMAR;
+
+	// Enable USART2
+	USART1->CR1 |= USART_CR1_UE;
 }
 
 /*

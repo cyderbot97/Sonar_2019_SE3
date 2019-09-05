@@ -1,7 +1,7 @@
 /*
  * main.c
  *
- *  Created on:
+ *  Created on: 05/09/2019
  *      Author: cyril
  */
 
@@ -12,8 +12,11 @@
 #include "bt.h"
 #include "i2c.h"
 #include "ultrason.h"
-
-
+/*
+ * Local Static Functions
+ */
+static uint8_t SystemClock_Config	(void);
+uint16_t conversion(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
 
 // Global functions declaration
 extern int my_printf(const char *format, ...);
@@ -22,24 +25,22 @@ extern int my_sprintf(char *out, const char *format, ...);
 // Global variables
 uint8_t console_rx_byte;
 uint8_t console_rx_irq = 0;
+uint8_t adc_irq;
+uint8_t rx_dma_buffer[8];
 
-
-/*
- * Local Static Functions
- */
-static uint8_t SystemClock_Config	(void);
-uint16_t conversion(uint16_t x, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
-
-
-uint8_t		  rx_dma_irq = 0;
 uint16_t	temp;
+
 uint16_t a,i;
+
 char dist_OLED[5];
 
 // Main program
 
 int main()
 {
+	uint8_t		DMA_Counter;
+	uint8_t		index;
+
 	SystemClock_Config();
 
 	BSP_LED_Init();
@@ -60,36 +61,71 @@ int main()
 
 	BSP_Console_Init();
 	my_printf("Console Ready!\r\n");
-	/*
+
+	//initialisation
+	DMA_Counter = DMA1_Channel3->CNDTR;
+	index = DMA_Counter;
+
 	while(1)
 	{
-	  // Report TIM3 status (CNT, CCR1 and CCR2 registers)
-	  my_printf("adc = %05d\r", a);
 
-	  // Wait for 100ms
-	  BSP_DELAY_ms(1000);
+		if(adc_irq == 1){
 
-	  if (console_rx_byte == 1) {
-	  BSP_PutNumber(USART1, a);
-	  }
-	}*/
-	while(1)
-	{
-		sprintf(dist_OLED,"%d",conversion(a,300,4095,15,400));
-		BSP_OLED_setXY(1,2);
-		BSP_OLED_SendStr("Distance");
-		BSP_OLED_setXY(4,2);
-		BSP_OLED_SendStr(dist_OLED);
-		if( conversion(a,300,4095,15,400) < 100 )
-		{
-			BSP_OLED_SendStr(" ");
+			sprintf(dist_OLED,"%d",conversion(a,300,4095,15,400));
+			BSP_OLED_setXY(1,2);
+			BSP_OLED_SendStr("Distance");
+			BSP_OLED_setXY(4,2);
+			BSP_OLED_SendStr(dist_OLED);
+			if( conversion(a,300,4095,15,400) < 100 )
+			{
+				BSP_OLED_SendStr(" ");
+			}
+			BSP_OLED_setXY(4,6);
+			BSP_OLED_SendStr("cm");
+
+			//my_printf("adc = %05d\r", conversion(a,300,4095,15,400));
+			//BSP_PutChar(USART1, '*');
+			//BSP_PutChar(USART1, 'D');
+			BSP_PutNumber(USART1,conversion(a,300,4095,15,400));
+			BSP_PutChar(USART1, '|');
+			//BSP_PutNumber(USART1,0x0A);
+			adc_irq = 0;
+			BSP_DELAY_ms(1000);
+
+
+
+			// Get actual DMA counter value
+			DMA_Counter = DMA1_Channel3->CNDTR;
+
+			// For all new received bytes
+			while (index != DMA_Counter)
+			{
+				/*
+				// Send byte to console
+				while ( (USART2->ISR & USART_ISR_TC) != USART_ISR_TC);
+				USART2->TDR = rx_dma_buffer[8-index];
+
+				// Circular index update
+				index--;
+				if (index == 0) index = 8;*/
+				switch(rx_dma_buffer[8-index]){
+				case 'a':
+					my_printf("Stop buz!\r\n");
+					TIM1->CCR1 = 0;
+				break;
+				case 's':
+					my_printf("Start buz!\r\n");
+					TIM1->CCR1 = 250;
+				break;
+
+				}
+				index--;
+				if (index == 0) index = 8;
+			}
+
 		}
-		BSP_OLED_setXY(4,6);
-		BSP_OLED_SendStr("cm");
-		my_printf("adc = %05d\r", conversion(a,300,4095,15,400));
-		BSP_PutNumber(USART1,conversion(a,300,4095,15,400));
-		//BSP_PutNumber(USART1,0x0A);
-		BSP_DELAY_ms(500);
+
+
 	}
 }
 

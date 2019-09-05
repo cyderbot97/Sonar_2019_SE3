@@ -5,23 +5,30 @@
  *      Author: cyril
  */
 #include "ultrason.h"
-
+/*
+ * set timer to trig ADC conversion, start conversion every 1ms
+ */
 void BSP_ULTRASONIC_ADC_INIT()
 {
-	//set timer to trig ADC conversion
 	RCC->APB2ENR |= RCC_APB2ENR_TIM15EN;
 
+	// Reset TIM15 configuration
 	TIM15->CR1 = 0x0000;
 	TIM15->CR2 = 0x0000;
 
+	// Set TIM6 prescaler
+	// Fck = 48MHz -> /48 1MHz counting
 	TIM15->PSC = (uint16_t) 48 -1;
 
+	// Fck = 48MHz -> /48000 = 1KHz counting frequency
 	TIM15->ARR = (uint16_t) 1000 -1;
 
 	TIM15->CR1 |= TIM_CR1_ARPE;
 
+	// OC1REF signal is used as trigger output (TRGO)
 	TIM15->CR2 |= (0x02 <<TIM_CR2_MMS_Pos);
 
+	//Counter enable
 	TIM15->CR1 |= TIM_CR1_CEN;
 
 	// Enable GPIOC clock

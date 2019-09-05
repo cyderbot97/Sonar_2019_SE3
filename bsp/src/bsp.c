@@ -15,10 +15,10 @@ void BSP_NVIC_Init()
 	NVIC_EnableIRQ(ADC1_IRQn);
 
 	// Set priority level 2 for USART1 interrupt
-	NVIC_SetPriority(USART1_IRQn, 2);
+	//NVIC_SetPriority(USART1_IRQn, 2);
 
 	// Enable USART1 interrupts
-	NVIC_EnableIRQ(USART1_IRQn);
+	//NVIC_EnableIRQ(USART1_IRQn);
 }
 
 void BSP_BUZZER_INIT()
@@ -26,19 +26,25 @@ void BSP_BUZZER_INIT()
 
 	RCC->APB2ENR |= RCC_APB2ENR_TIM16EN;
 
+	// Reset TIM16 configuration
 	TIM16->CR1 = 0x0000;
 	TIM16->CR2 = 0x0000;
 
+	// Set TIM6 prescaler
+	// Fck = 48MHz -> /48000 1kHz counting frequency
 	TIM16->PSC = (uint16_t) 48000 -1;
 
+	//set auto reload value
 	TIM16->ARR = (uint16_t) 500 -1;
 
-	TIM16->CCMR1 |= (0x06 <<TIM_CCMR1_OC1M_Pos);// | TIM_CCMR1_OC1PE;
+	TIM16->CCMR1 |= (0x06 <<TIM_CCMR1_OC1M_Pos);
 
+	//set compare value
 	TIM16->CCR1 = 200;
 
 	TIM16->CR1 |= TIM_CR1_ARPE;
 
+	//enable interupt
 	TIM16->DIER |= TIM_DIER_UIE;
 	TIM16->DIER |= TIM_DIER_CC1IE;
 
