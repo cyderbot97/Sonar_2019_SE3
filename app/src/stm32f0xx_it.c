@@ -167,7 +167,7 @@ void ADC1_COMP_IRQHandler (void){
 	if ((ADC1->ISR & ADC_ISR_EOC) == ADC_ISR_EOC)
 		{
 			ADC1->ISR |= ADC_ISR_EOC;
-			a=ADC1->DR - 50;
+			a=ADC1->DR;
 			if(a<310){
 				TIM16->CCR1 = 200;
 				TIM16->ARR = 210;

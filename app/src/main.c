@@ -71,24 +71,23 @@ int main()
 
 		if(adc_irq == 1){
 
-			sprintf(dist_OLED,"%d",conversion(a,300,4095,15,400));
+			sprintf(dist_OLED,"%d",conversion(a,200,4095,15,600));
 			BSP_OLED_setXY(1,2);
 			BSP_OLED_SendStr("Distance");
 			BSP_OLED_setXY(4,2);
 			BSP_OLED_SendStr(dist_OLED);
 			if( conversion(a,300,4095,15,400) < 100 )
 			{
-				BSP_OLED_SendStr(" ");
+				BSP_OLED_SendStr("   ");
 			}
+
 			BSP_OLED_setXY(4,6);
 			BSP_OLED_SendStr("cm");
 
-			//my_printf("adc = %05d\r", conversion(a,300,4095,15,400));
-			//BSP_PutChar(USART1, '*');
-			//BSP_PutChar(USART1, 'D');
-			BSP_PutNumber(USART1,conversion(a,300,4095,15,400));
+			my_printf("adc = %05d\r", conversion(a,200,4095,15,600));
+			BSP_PutNumber(USART1,conversion(a,200,4095,15,600));
 			BSP_PutChar(USART1, '|');
-			//BSP_PutNumber(USART1,0x0A);
+			BSP_PutNumber(USART1,0x0A);
 			adc_irq = 0;
 			BSP_DELAY_ms(1000);
 
