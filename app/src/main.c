@@ -89,9 +89,6 @@ int main()
 			BSP_PutChar(USART1, '|');
 			BSP_PutNumber(USART1,0x0A);
 			adc_irq = 0;
-			BSP_DELAY_ms(1000);
-
-
 
 			// Get actual DMA counter value
 			DMA_Counter = DMA1_Channel3->CNDTR;
@@ -99,14 +96,6 @@ int main()
 			// For all new received bytes
 			while (index != DMA_Counter)
 			{
-				/*
-				// Send byte to console
-				while ( (USART2->ISR & USART_ISR_TC) != USART_ISR_TC);
-				USART2->TDR = rx_dma_buffer[8-index];
-
-				// Circular index update
-				index--;
-				if (index == 0) index = 8;*/
 				switch(rx_dma_buffer[8-index]){
 				case 'a':
 					my_printf("Stop buz!\r\n");
@@ -121,6 +110,9 @@ int main()
 				index--;
 				if (index == 0) index = 8;
 			}
+
+
+			BSP_DELAY_ms(500ms); // change with timer delay
 
 		}
 
